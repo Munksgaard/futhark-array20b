@@ -1,0 +1,13 @@
+*.c
+*.tuning
+backprop
+lud
+LocVolCalib
+OptionPricing
+heston32
+lavaMD
+nn
+nw
+pathfinder
+srad
+bfast
