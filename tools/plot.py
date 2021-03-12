@@ -84,8 +84,8 @@ if resultsdir == "results-gpu04":
      ("D2", "LocVolCalib-data/large.in")))
     programs.append(("BFast",
      "bfast",
-     ("D1", "bfast-data/D1.in"),
-     ("peru", "bfast-data/peru.in")))
+     ("peru", "bfast-data/peru.in"),
+     ("sahara", "bfast-data/africa.in")))
 
 
 def plotting_info(x):
@@ -97,7 +97,7 @@ def plotting_info(x):
     # baseline_results = {}
     handwritten_results = {}
 
-    print("opentuner: ", opentuner_results)
+    # print("opentuner: ", opentuner_results)
 
     # try:
     #     baseline_results = json.load(open('results/{}-baseline.json'.format(filename)))

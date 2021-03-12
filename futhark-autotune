@@ -111,7 +111,7 @@ class FutharkTuner(MeasurementInterface):
     as timeout-value, plus the (estimated) overhead of initialisation.
     """
     with tempfile.NamedTemporaryFile() as json_tmp:
-      base_cmd = '{} {} --exclude-case=notune --backend=opencl --skip-compilation --json={}'.format(
+      base_cmd = '{} {} --exclude-case=notune --exclude-case=noopentune --backend=opencl --skip-compilation --json={}'.format(
         self.args.futhark_bench, self.program_name(), json_tmp.name)
       wall_start = time.time()
       base_res = self.call_critical_program(base_cmd)
@@ -149,9 +149,11 @@ class FutharkTuner(MeasurementInterface):
     n = 0
     with tempfile.NamedTemporaryFile() as json_tmp:
       # extract comparison values
-      val_cmd = '{} {} --exclude-case=notune --backend=opencl --skip-compilation --pass-option="--default-threshold=2000000000" --pass-option=-L --runs=1 --json={}'.format(
+      val_cmd = '{} {} --exclude-case=notune --exclude-case=noopentune --backend=opencl --pass-option="--default-threshold=2000000000" --pass-option=-L --runs=1 --json={}'.format(
         self.args.futhark_bench, self.program_name(), json_tmp.name)
+      print("executing: ", val_cmd)
       val_res = self.call_critical_program(val_cmd)
+      print("got result: ", val_res)
 
       json_data = json.load(json_tmp, object_pairs_hook=OrderedDict)
       datasets = json_data[self.program_name()]['datasets']
@@ -313,7 +315,7 @@ class FutharkTuner(MeasurementInterface):
     def otherOption(opt):
       return '--pass-option {}'.format(opt)
     other_options = ' '.join(map(otherOption, self.args.pass_option))
-    return '{} --skip-compilation {} --pass-option="--default-threshold=2000000000" --exclude-case=notune {} {}'.format(
+    return '{} --skip-compilation {} --pass-option="--default-threshold=2000000000" --exclude-case=notune --exclude-case=noopentune {} {}'.format(
       self.args.futhark_bench, self.program_name(), size_options, other_options)
 
   def get_branch(self, start, cfg, datasets, result):

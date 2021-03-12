@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-BENCHMARKS = backprop heston32 lavaMD LocVolCalib lud nw OptionPricing srad mapscan1 mapscan2 pathfinder nn bfast
+BENCHMARKS = backprop heston32 lavaMD LocVolCalib lud nw OptionPricing srad pathfinder nn bfast
 
 BENCHMARK_TARGETS = $(BENCHMARKS:%=benchmarks/%.fut)
 
@@ -28,25 +28,27 @@ all: $(UNTUNED_JSON) $(OPENTUNER_JSON) $(AUTOTUNER_JSON) $(OPENTUNER_TUNETIME) $
 
 bin/futhark:
 	mkdir -p bin
-	cd futhark && git checkout 289dbf7eb7e455cf77d9515680b50fbd9854bc61 && stack --local-bin-path ../bin install
+	cd futhark && git checkout e1bbd19adf046be2bac425ef958da6a84a04d408 && stack --local-bin-path ../bin install
 
 bin/futhark-regtiling:
 	mkdir -p bin
-	cd futhark && git checkout 3f9ede3e6d3d95889e0d86f3353ad87a5e090b32 && stack --local-bin-path ../bin install
+	cd futhark && git checkout e1bbd19adf046be2bac425ef958da6a84a04d408 && stack --local-bin-path ../bin install
 	mv bin/futhark bin/futhark-regtiling
 
 results-$(DIKUMACHINE)/bfast-untuned.json: benchmarks/bfast.fut bin/futhark-regtiling
 	mkdir -p results-$$DIKUMACHINE
 	FUTHARK_INCREMENTAL_FLATTENING=1 bin/futhark-regtiling bench \
-	  --backend=opencl --pass-option=--default-tile-size=8 --runs=100 --no-tuning --json $@ $<
+	  --backend=opencl --pass-option=--default-tile-size=8 \
+	  --pass-option=--default-reg-tile-size=8 --runs=100 --no-tuning --json $@ $<
 
 results-$(DIKUMACHINE)/bfast-opentuner.json: tunings-$(DIKUMACHINE)/bfast-opentuner.json benchmarks/bfast.fut bin/futhark-regtiling
 	mkdir -p results-$$DIKUMACHINE
 	FUTHARK_INCREMENTAL_FLATTENING=1 bin/futhark-regtiling bench \
 	  --backend=opencl \
 	  --json $@ \
-          --runs=500 \
+          --runs=1000 \
 	  --pass-option=--default-tile-size=8 \
+	  --pass-option=--default-reg-tile-size=3 \
 	  $$(python tools/tuning_json_to_options.py < $<) \
 	  benchmarks/bfast.fut
 
@@ -54,17 +56,18 @@ results-$(DIKUMACHINE)/bfast-autotuner.json: tunings-$(DIKUMACHINE)/bfast-autotu
 	mkdir -p results-$$DIKUMACHINE
 	FUTHARK_INCREMENTAL_FLATTENING=1 bin/futhark-regtiling bench \
 	  --backend=opencl \
-          --runs=500 \
+          --runs=1000 \
 	  --pass-option=--default-tile-size=8 \
+	  --pass-option=--default-reg-tile-size=3 \
 	  --json $@ \
 	  $$(python tools/tuning_to_options.py < $<) \
 	  benchmarks/bfast.fut
 
 tunings-$(DIKUMACHINE)/bfast-opentuner.json results-$(DIKUMACHINE)/bfast-opentuner.tunetime: benchmarks/bfast.fut bin/futhark-regtiling
-	mkdir -p tunings-$$DIKUMACHINE results-$DIKUMACHINE
+	mkdir -p tunings-$$DIKUMACHINE results-$$DIKUMACHINE
 	FUTHARK_INCREMENTAL_FLATTENING=1 /usr/bin/time -f '%e' -o results-$$DIKUMACHINE/bfast-opentuner.tunetime \
 	  ./futhark-autotune \
-	  --futhark-bench="bin/futhark-regtiling bench --pass-option=--default-tile-size=8" \
+	  --futhark-bench="bin/futhark-regtiling bench --pass-option=--default-tile-size=8 --pass-option=--default-reg-tile-size=3" \
 	  --compiler="bin/futhark-regtiling opencl" \
 	  --stop-after 7200 \
 	  --test-limit 10000000 \
@@ -78,6 +81,7 @@ tunings-$(DIKUMACHINE)/bfast-autotuner.tuning results-$(DIKUMACHINE)/bfast-autot
 	  bin/futhark-regtiling autotune \
 	  --backend=opencl \
 	  --pass-option=--default-tile-size=8 \
+	  --pass-option=--default-reg-tile-size=3 \
 	  $<
 	mv $<.tuning tunings-$$DIKUMACHINE/bfast-autotuner.tuning
 
