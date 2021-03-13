@@ -46,7 +46,7 @@ results-$(DIKUMACHINE)/bfast-opentuner.json: tunings-$(DIKUMACHINE)/bfast-opentu
 	  $$(python tools/tuning_json_to_options.py < $<) \
 	  benchmarks/bfast.fut
 
-results-$(DIKUMACHINE)/bfast-autotuner.json: tunings-$(DIKUMACHINE)/bfast-autotuner.tuning benchmarks/bfast.fut bin/futhark
+results-$(DIKUMACHINE)/bfast-autotuner.json: tunings-$(DIKUMACHINE)/bfast-autotuner.tuning benchmarks/bfast.fut bin/futhark-regtiling
 	mkdir -p results-$$DIKUMACHINE
 	FUTHARK_INCREMENTAL_FLATTENING=1 bin/futhark-regtiling bench \
 	  --backend=opencl \
