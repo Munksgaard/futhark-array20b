@@ -47,10 +47,10 @@ programs = [
     #  "backprop",
     #  ("D1", "backprop-data/D1.in"),
     #  ("D2", "backprop-data/D2.in")),
-    # ("LavaMD",
-    #  "lavaMD",
-    #  ("D1", "lavaMD-data/D1.in"),
-    #  ("D2", "lavaMD-data/D2.in")),
+    ("LavaMD",
+     "lavaMD",
+     ("D1", "lavaMD-data/D1.in"),
+     ("D2", "lavaMD-data/D2.in")),
     # ("NW",
     #  "nw",
     #  ("D1", "nw-data/D1.in"),
@@ -66,36 +66,46 @@ programs = [
      "lud",
      ("2048", "lud-data/2048.in"),
      ("256", "lud-data/256.in")),
-]
-
-if resultsdir == "results-gpu04":
-    programs.append(("SRAD",
+    ("SRAD",
      "srad",
      ("D1", "srad-data/D1.in"),
-     ("D2", "srad-data/D2.in")))
-    programs.append(("Pathfinder",
-     "pathfinder",
-     ("D1", "pathfinder-data/D1.in"),
-     ("D2", "pathfinder-data/D2.in")))
-
-    programs.append(("LocVolCalib",
-     "LocVolCalib",
-     ("D1", "LocVolCalib-data/small.in"),
-     ("D2", "LocVolCalib-data/large.in")))
-    programs.append(("BFast",
+     ("D2", "srad-data/D2.in")),
+    # ("Pathfinder",
+    #  "pathfinder",
+    #  ("D1", "pathfinder-data/D1.in"),
+    #  ("D2", "pathfinder-data/D2.in")),
+    # ("LocVolCalib",
+    #  "LocVolCalib",
+    #  ("D1", "LocVolCalib-data/small.in"),
+    #  ("D2", "LocVolCalib-data/large.in")),
+    ("BFast",
      "bfast",
      ("peru", "bfast-data/peru.in"),
-     ("sahara", "bfast-data/africa.in")))
+     ("sahara", "bfast-data/africa.in")),
+    ("LocVolCalib",
+     "LocVolCalib",
+     ("medium", "LocVolCalib-data/medium.in"),
+     ("large", "LocVolCalib-data/large.in"))
+
+]
 
 
 def plotting_info(x):
     name, filename, d1, d2 = x
 
-    untuned_results = json.load(open('{}/{}-untuned.json'.format(resultsdir,filename)))
-    autotuner_results = json.load(open('{}/{}-autotuner.json'.format(resultsdir,filename)))
-    opentuner_results = json.load(open('{}/{}-opentuner.json'.format(resultsdir,filename)))
+    untuned_results1 = json.load(open('{}-1/{}-untuned.json'.format(resultsdir,filename)))
+    autotuner_results1 = json.load(open('{}-1/{}-autotuner.json'.format(resultsdir,filename)))
+    opentuner_results1 = json.load(open('{}-1/{}-opentuner.json'.format(resultsdir,filename)))
+
+    untuned_results2 = json.load(open('{}-2/{}-untuned.json'.format(resultsdir,filename)))
+    autotuner_results2 = json.load(open('{}-2/{}-autotuner.json'.format(resultsdir,filename)))
+    opentuner_results2 = json.load(open('{}-2/{}-opentuner.json'.format(resultsdir,filename)))
+
+    untuned_results3 = json.load(open('{}-3/{}-untuned.json'.format(resultsdir,filename)))
+    autotuner_results3 = json.load(open('{}-3/{}-autotuner.json'.format(resultsdir,filename)))
+    opentuner_results3 = json.load(open('{}-3/{}-opentuner.json'.format(resultsdir,filename)))
+
     # baseline_results = {}
-    handwritten_results = {}
 
     # print("opentuner: ", opentuner_results)
 
@@ -118,9 +128,22 @@ def plotting_info(x):
     # baseline_fut_name = 'benchmarks/{}-baseline.fut'.format(filename)
 
     def for_dataset(d):
-        untuned_runtime = np.mean(untuned_results[fut_name]['datasets'][d]['runtimes'])
-        autotuner_runtime = np.mean(autotuner_results[fut_name]['datasets'][d]['runtimes'])
-        opentuner_runtime = np.mean(opentuner_results[fut_name]['datasets'][d]['runtimes'])
+        untuned_runtime = min(np.min(untuned_results1[fut_name]['datasets'][d]['runtimes']),
+                              np.min(untuned_results2[fut_name]['datasets'][d]['runtimes']),
+                              np.min(untuned_results3[fut_name]['datasets'][d]['runtimes']))
+        autotuner_runtime = min(np.min(autotuner_results1[fut_name]['datasets'][d]['runtimes']),
+                                np.min(autotuner_results2[fut_name]['datasets'][d]['runtimes']),
+                                np.min(autotuner_results3[fut_name]['datasets'][d]['runtimes']))
+        autotuner_runtime_worst = max(np.min(autotuner_results1[fut_name]['datasets'][d]['runtimes']),
+                                      np.min(autotuner_results2[fut_name]['datasets'][d]['runtimes']),
+                                      np.min(autotuner_results3[fut_name]['datasets'][d]['runtimes']))
+
+        opentuner_runtime = min(np.min(opentuner_results1[fut_name]['datasets'][d]['runtimes']),
+                                np.min(opentuner_results2[fut_name]['datasets'][d]['runtimes']),
+                                np.min(opentuner_results3[fut_name]['datasets'][d]['runtimes']))
+        opentuner_runtime_worst = max(np.min(opentuner_results1[fut_name]['datasets'][d]['runtimes']),
+                                      np.min(opentuner_results2[fut_name]['datasets'][d]['runtimes']),
+                                      np.min(opentuner_results3[fut_name]['datasets'][d]['runtimes']))
 
         # try:
         #     untuned_runtime = np.mean(baseline_results[baseline_fut_name]['datasets'][d]['runtimes'])
@@ -131,7 +154,7 @@ def plotting_info(x):
         #     handwritten_runtime = np.mean(handwritten_results[fut_name]['datasets'][d]['runtimes'])
         # except KeyError:
         #     handwritten_runtime = None
-        return (untuned_runtime, autotuner_runtime, opentuner_runtime, None)
+        return (float(untuned_runtime), float(autotuner_runtime), float(autotuner_runtime_worst), float(opentuner_runtime), float(opentuner_runtime_worst))
 
     return (name, (for_dataset(d1[1]), for_dataset(d2[1])))
 
@@ -150,7 +173,7 @@ print("num_bars: ", num_bars)
 num_programs = len(program_plots)
 print("num_programs: ", num_programs)
 
-width = 0.25
+width = 0.20
 
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
@@ -161,31 +184,37 @@ plt.rc('text', usetex=True)
 grey='#aaaaaa'
 
 i = 0
-if resultsdir == "results-gpu04":
-    plt.figure(figsize=(10, 1.5))
-else:
-    plt.figure(figsize=(2, 1.5))
+plt.figure(figsize=(10, 1.5))
 
 for (program_name, info) in program_plots:
     print('Plotting {}...'.format(program_name))
     (d1, d2) = info
     plt.subplot(1, num_programs, i+1)
-    d1_untuned_runtime, d1_autotuner_runtime, d1_opentuner_runtime, d1_handwritten_runtime = d1
-    d2_untuned_runtime, d2_autotuner_runtime, d2_opentuner_runtime, d2_handwritten_runtime = d2
+    d1_untuned_runtime, d1_autotuner_runtime, d1_autotuner_worst_runtime, d1_opentuner_runtime, d1_opentuner_worst_runtime = d1
+    d2_untuned_runtime, d2_autotuner_runtime, d2_autotuner_worst_runtime, d2_opentuner_runtime, d2_opentuner_worst_runtime = d2
 
     d1_untuned_speedup = d1_untuned_runtime/d1_untuned_runtime
     d1_autotuner_speedup = d1_untuned_runtime/d1_autotuner_runtime
+    d1_autotuner_worst_speedup = d1_untuned_runtime/d1_autotuner_worst_runtime
     d1_opentuner_speedup = d1_untuned_runtime/d1_opentuner_runtime
-    d1_handwritten_speedup = d1_untuned_runtime/d1_handwritten_runtime if d1_handwritten_runtime else None
+    d1_opentuner_worst_speedup = d1_untuned_runtime/d1_opentuner_worst_runtime
 
     d2_untuned_speedup = d2_untuned_runtime/d2_untuned_runtime
     d2_autotuner_speedup = d2_untuned_runtime/d2_autotuner_runtime
+    d2_autotuner_worst_speedup = d2_untuned_runtime/d2_autotuner_worst_runtime
     d2_opentuner_speedup = d2_untuned_runtime/d2_opentuner_runtime
-    d2_handwritten_speedup = d2_untuned_runtime/d2_handwritten_runtime if d2_handwritten_runtime else None
+    d2_opentuner_worst_speedup = d2_untuned_runtime/d2_opentuner_worst_runtime
+
+    # print(program_name, d1_untuned_runtime, d2_untuned_runtime)
+    # print(program_name, d1_opentuner_runtime, d2_opentuner_runtime)
+    # print(program_name, d1_opentuner_worst_runtime, d1_opentuner_worst_speedup, d2_opentuner_worst_runtime, d2_opentuner_worst_speedup)
+    # print(program_name, d1_autotuner_runtime, d2_autotuner_runtime)
+
+
 
     plt.gca().get_yaxis().set_visible(False)
 
-    offset = width if d1_handwritten_runtime else 0
+    offset = width
 
     plt.gca().grid(True, axis='y', linestyle='-', linewidth='2', color='grey')
     plt.gca().set_title(program_name)
@@ -196,47 +225,27 @@ for (program_name, info) in program_plots:
         top=False,         # ticks along the top edge are off
         labelbottom=False) # labels along the bottom edge are off
 
-    offset = width if d1_handwritten_runtime else 0
+    offset = width
 
 
     d1_untuned_rect, d2_untuned_rect = plt.bar([0, offset + 1],
                                                [d1_untuned_speedup, d2_untuned_speedup], width,
                                                color='#ffcebf', zorder=3, label="Not autotuned")
+
     d1_opentuner_rect, d2_opentuner_rect = plt.bar([width, offset + 1 + width],
                                                    [d1_opentuner_speedup, d2_opentuner_speedup], width,
                                                    color='#ff0000', zorder=3, label="Opentuner")
-    d1_autotuner_rect, d2_autotuner_rect = plt.bar([2 * width, offset + 1 + 2 * width],
+
+    d1_opentuner_worst_rect, d2_opentuner_worst_rect = plt.bar([2*width, offset + 1 + 2*width],
+                                                   [d1_opentuner_worst_speedup, d2_opentuner_worst_speedup], width,
+                                                   color='#ffac4c', zorder=3, label="Opentuner (worst)")
+
+    d1_autotuner_rect, d2_autotuner_rect = plt.bar([3 * width, offset + 1 + 3 * width],
                                                    [d1_autotuner_speedup, d2_autotuner_speedup], width,
                                                    color='#ff7c4c', zorder=3, label="Autotuner")
-
-    # if d1_handwritten_speedup and d2_handwritten_speedup:
-    #     handwritten_ind = [3 * width, offset + 1 + 3 * width]
-    #     handwritten_speedups = [d1_handwritten_speedup, d2_handwritten_speedup]
-    # elif d1_handwritten_speedup:
-    #     handwritten_ind = [3 * width]
-    #     handwritten_speedups = [d1_handwritten_speedup]
-    # elif d2_handwritten_speedup:
-    #     handwritten_ind = [offset + 1 + 3 * width]
-    #     handwritten_speedups = [d2_handwritten_speedup]
-    # else:
-    #     handwritten_ind = []
-    #     handwritten_speedups = []
-
-    # d1_handwritten_rect = None
-    # d2_handwritten_rect = None
-    # if len(handwritten_ind) > 0:
-    #     handwritten_rects = plt.bar(handwritten_ind,
-    #                                 handwritten_speedups, width,
-    #                                 color='#ffac4c', zorder=3, label="Handwritten")
-    #     if d1_handwritten_speedup:
-    #         d1_handwritten_rect = handwritten_rects[0]
-    #         if d2_handwritten_speedup:
-    #             d2_handwritten_rect = handwritten_rects[1]
-    #     elif d2_handwritten_speedup:
-    #         d2_handwritten_rect = handwritten_rects[0]
-    # else:
-    #     # Hack to make the legend work.
-    #     plt.bar([0], [0], 0, color='#ffac4c', zorder=3, label="Handwritten")
+    # d1_autotuner_worst_rect, d2_autotuner_worst_rect = plt.bar([4 * width, offset + 1 + 4 * width],
+    #                                                [d1_autotuner_worst_speedup, d2_autotuner_worst_speedup], width,
+    #                                                color='#ff7cff', zorder=3, label="Autotuner (worst)")
 
     ymin, ymax = plt.ylim()
     print("ymin: ", ymin, ", ymax: ", ymax)
@@ -247,12 +256,12 @@ for (program_name, info) in program_plots:
         if r:
             r_ypos = max(3*notch, r.get_y()+r.get_height()+3*notch)
             if r.get_height() < 0.1:
-                label = "%.2f" % (round(r.get_height()*100)/100)
+                label = "%.2fx" % (round(r.get_height()*100)/100)
             else:
-                label = "%.1f" % (round(r.get_height()*10)/10)
+                label = "%.1fx" % (round(r.get_height()*10)/10)
             plt.text(r.get_x(), r_ypos * 1.1,
                      label,
-                     ha='left', va='baseline', size='smaller', rotation=45)
+                     ha='left', va='baseline', size='smaller', rotation=60)
 
     rect_it(d1_untuned_speedup, d1_untuned_rect, d1_untuned_runtime)
     rect_it(d2_untuned_speedup, d2_untuned_rect, d2_untuned_runtime)
@@ -260,11 +269,14 @@ for (program_name, info) in program_plots:
     rect_it(d1_opentuner_speedup, d1_opentuner_rect, d1_opentuner_runtime)
     rect_it(d2_opentuner_speedup, d2_opentuner_rect, d2_opentuner_runtime)
 
+    rect_it(d1_opentuner_worst_speedup, d1_opentuner_worst_rect, d1_opentuner_worst_runtime)
+    rect_it(d2_opentuner_worst_speedup, d2_opentuner_worst_rect, d2_opentuner_worst_runtime)
+
     rect_it(d1_autotuner_speedup, d1_autotuner_rect, d1_autotuner_runtime)
     rect_it(d2_autotuner_speedup, d2_autotuner_rect, d2_autotuner_runtime)
 
-    # rect_it(d1_handwritten_speedup, d1_handwritten_rect, d1_handwritten_runtime)
-    # rect_it(d2_handwritten_speedup, d2_handwritten_rect, d2_handwritten_runtime)
+    # rect_it(d1_autotuner_worst_speedup, d1_autotuner_worst_rect, d1_autotuner_worst_runtime)
+    # rect_it(d2_autotuner_worst_speedup, d2_autotuner_worst_rect, d2_autotuner_worst_runtime)
 
     def time(ref):
         if ref > 1000000:
@@ -286,7 +298,7 @@ for (program_name, info) in program_plots:
 
     i += 1
 
-plt.legend(bbox_to_anchor=(0,-0.6), loc='lower right', ncol=3, borderaxespad=0.)
+plt.legend(bbox_to_anchor=(0,-0.6), loc='lower right', ncol=4, borderaxespad=0.)
 plt.rc('text')
 print('Rendering {}...'.format(outputfile))
 plt.savefig(outputfile, bbox_inches='tight')
