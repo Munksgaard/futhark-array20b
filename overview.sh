@@ -4,7 +4,7 @@
 set -o errexit
 set -o pipefail
 
-GPU=04
+GPU=${GPU-04}
 
 benchit () {
     BENCH="$1"
@@ -17,17 +17,17 @@ benchit () {
     echo
 
     echo -n untuned-opentuner
-    ../futhark/tools/cmp-bench-json.py results-gpu$GPU/$BENCH-{untuned,opentuner}.json
+    tools/cmp-bench-json.py results-gpu$GPU/$BENCH-{untuned,opentuner}.json
 
     echo
 
     echo -n untuned-autotuner
-    ../futhark/tools/cmp-bench-json.py results-gpu$GPU/$BENCH-{untuned,autotuner}.json
+    tools/cmp-bench-json.py results-gpu$GPU/$BENCH-{untuned,autotuner}.json
 
     echo
 
     echo -n opentuner-autotuner
-    ../futhark/tools/cmp-bench-json.py results-gpu$GPU/$BENCH-{opentuner,autotuner}.json
+    tools/cmp-bench-json.py results-gpu$GPU/$BENCH-{opentuner,autotuner}.json
 
     echo
 }
