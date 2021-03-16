@@ -131,7 +131,7 @@ def plotting_info(x):
         untuned_runtime = min(np.min(untuned_results1[fut_name]['datasets'][d]['runtimes']),
                               np.min(untuned_results2[fut_name]['datasets'][d]['runtimes']),
                               np.min(untuned_results3[fut_name]['datasets'][d]['runtimes']))
-        autotuner_runtime = min(np.min(autotuner_results1[fut_name]['datasets'][d]['runtimes']),
+        autotuner_runtime = max(np.min(autotuner_results1[fut_name]['datasets'][d]['runtimes']),
                                 np.min(autotuner_results2[fut_name]['datasets'][d]['runtimes']),
                                 np.min(autotuner_results3[fut_name]['datasets'][d]['runtimes']))
         autotuner_runtime_worst = max(np.min(autotuner_results1[fut_name]['datasets'][d]['runtimes']),
